@@ -2,7 +2,25 @@
   <!--编写页面静态部分，即view部分-->
  <!--template内容必须有一个根元素，否则vue会报错，这里我们在template标签内定义一个div-->
   <div>
-      <el-button type="primary" v-on:click="query" size="small" >查询</el-button>
+      <el-form :model="params">
+        <el-select v-model="params.siteId" placeholder="请选择站点">
+          <el-option
+            v-for="item in siteList"
+            :key="item.siteId"
+            :label="item.siteName"
+            :value="item.siteId">
+          </el-option>
+        </el-select>
+        页面别名: <el-input v-model="params.pageAliase" style="width: 100px"></el-input>
+        <el-button type="primary" v-on:click="query" size="small" >查询</el-button>
+        <router-link class="mui-tab-item" :to="{path: '/cms/page/add',query:{
+          page: this.params.page,
+          siteId: this.params.siteId
+        }}">
+          <el-button type="primary" size="small">新增页面</el-button>
+        </router-link>
+      </el-form>
+
       <el-table
         :data="list"
         stripe
@@ -25,7 +43,7 @@
       <el-pagination
         layout="prev, pager, next"
         :page-size="this.params.size"
-        v-on:current-chagen="changePage"
+        v-on:current-change="changePage"
         :total="total" :current-page="this.params.page" style="float:right;">
       </el-pagination>
     </div>
@@ -38,17 +56,21 @@
         name: "page_list.vue",
         data() {
           return {
+            siteList:[],//站点列表
             list: [],
             total: 50,
             params: {
               page: 1,//页码
-              size: 2 //每页显示的个数
+              size: 5 ,//每页显示的个数
+              siteId:'',
+              pageAliase:''
             }
           }
         },
       methods:{
             //分页查询
-            changePage: function(){
+            changePage: function(page){
+              this.params.page = page;
               this.query();
             },
             //查询
@@ -59,6 +81,25 @@
                 this.list= res.queryResult.list
               })
             }
+      },
+      mounted(){
+          //默认查询页面
+        this.query();
+        //初始化站点列表
+        this.siteList = [
+          {
+            siteId:'5a751fab6abb5044e0d19ea1',
+            siteName:'门户主站'
+          },
+          {
+            siteId:'102',
+            siteName:'测试站'
+          }
+        ]
+      },
+      created(){
+          this.params.page = Number.parseInt(this.$route.query.page||1);
+          this.params.siteId = this.$route.query.siteId||'';
       }
     }
 </script>
